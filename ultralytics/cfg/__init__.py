@@ -201,6 +201,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "weight_shard_size_bytes"
     }
 )
 CFG_BOOL_KEYS = frozenset(

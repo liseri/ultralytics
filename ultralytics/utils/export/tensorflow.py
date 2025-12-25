@@ -182,7 +182,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     subprocess.run(cmd, shell=True)
 
 
-def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = ""):
+def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = "", weight_shard_size_bytes: int = None):
     """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
 
     Args:
@@ -191,6 +191,7 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
         half (bool, optional): Enable FP16 quantization. Defaults to False.
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
+        weight_shard_size_bytes (int, optional): Weight shard size in bytes. Defaults to None.
 
     Notes:
         Requires tensorflowjs package. Uses tensorflowjs_converter command-line tool for conversion.
@@ -210,10 +211,11 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
     LOGGER.info(f"\n{prefix} output node names: {outputs}")
 
     quantization = "--quantize_float16" if half else "--quantize_uint8" if int8 else ""
+    shard_size = f"--weight_shard_size_bytes={weight_shard_size_bytes}" if weight_shard_size_bytes else ""  
     with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
         cmd = (
             "tensorflowjs_converter "
-            f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
+            f'--input_format=tf_frozen_model {quantization} {shard_size} --output_node_names={outputs} "{fpb_}" "{f_}"'
         )
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
